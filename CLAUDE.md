@@ -83,19 +83,37 @@ descriptions, so a caption on the website cannot drift from the build.
 everything the published page shows: title, subtitle, Background, About the
 Indicator, Key Points, the Figure 1 block (caption, description, and
 `Data source:` line), Indicator Notes, Data Sources, and References. It arrives
-with tracked changes not yet accepted (52 deletions, 45 insertions), so the
-published page equals the accept-all rendering that `read_docx.R` produces.
+with tracked changes not yet accepted: 52 deletions and 45 insertions.
+
+**The published page is not the accept-all rendering of this document**, which
+is the one place this indicator departs from the pattern every other indicator
+here follows. The tracked changes fall into two rounds, and they are separated
+cleanly by date:
+
+- **2024-03-13 to 2024-05-23**, six authors: the June 2024 data update. Accepted
+  before EPA published, and present on the page.
+- **2025-02-13**, one author, six deletions: made after the January 19, 2025
+  snapshot this project rebuilds, and therefore **not** on the page. They remove
+  the closing sentence of Background (on Non-Hispanic Black and Non-Hispanic
+  American Indian/Alaska Native populations having the highest rates of asthma),
+  its citation marker, and reference 6 (Burbank et al., 2023).
+
+So `R/gen_narrative.R` reads the document **as of the snapshot date**: revisions
+stamped on or before 2025-01-19 are accepted, later ones are rejected. It does
+that by wrapping `docx_body_xml()` locally, never by editing `R/utils/read_docx.R`,
+which stays identical across every indicator repository. Taking the accept-all
+rendering instead silently drops a sentence EPA published and leaves the
+reference list numbered 1, 2, 3, 4, 5, 7, 8, 9. The generator asserts the
+numbering is 1..N with no gaps, which is what catches that regression.
 
 **This document's citations are typed, not Word endnotes.** It still contains 13
 `w:endnoteReference` markers and a populated `word/endnotes.xml`, but every one
-of them sits inside a `w:del`: the May 2024 update deleted the endnote apparatus
-and replaced it with hand-typed superscript numbers plus a hand-typed
-`Bibliography`-styled reference list. In the accepted rendering there are zero
-live endnote markers and zero live endnote text, so `R/gen_narrative.R` builds
-the reference list from the body's `Bibliography` paragraphs and never calls
-`docx_endnotes()`. EPA's typed list runs 1, 2, 3, 4, 5, 7, 8, 9 with no 6, which
-is EPA's own numbering after that edit and is reproduced as published, not
-renumbered.
+of them sits inside a `w:del` from the 2024 round: that update deleted the
+endnote apparatus and replaced it with hand-typed superscript numbers plus a
+hand-typed `Bibliography`-styled reference list. In the rendering above there are
+zero live endnote markers and zero live endnote text, so `R/gen_narrative.R`
+builds the reference list from the body's `Bibliography` paragraphs and never
+calls `docx_endnotes()`, which would return 13 empty rows.
 
 `data-raw/GDD TD_2024 updated May 2024- CLEAN.docx` is the technical
 documentation, the Word source of the linked PDF. It is clean (no tracked
@@ -107,14 +125,17 @@ generator. It is vendored as the citable source of the technical documentation.
 **`narrative.qmd` is generated, not hand-edited.** Rerunning the generator
 overwrites it. A wording problem is fixed in `R/gen_narrative.R`, or it is not a
 wording problem but a deliberate editorial change, which belongs on the page in
-the site repository. Wording that differs from EPA's docx is a bug here.
+the site repository. Wording that differs from EPA's published page is a bug
+here. The docx is the means, not the authority: where the two disagree, as they
+do over the 2025-02-13 revisions, the published page wins.
 
 ### `R/utils/` for shared, indicator-agnostic readers
 
 - `read_docx.R` parses `word/document.xml` with `xml2` directly. Never
-  `officer::docx_summary()`, which leaks deleted text. The published EPA page
-  equals the accept-all-tracked-changes rendering of the docx, and this reader
-  reproduces exactly that. Raw bytes go to `read_xml()` as a raw vector, never
+  `officer::docx_summary()`, which leaks deleted text. It renders the
+  accept-all-tracked-changes view, which for most EPA documents is exactly the
+  published page; see the Narrative section above for why this indicator's
+  document needs a date cutoff on top of it. Raw bytes go to `read_xml()` as a raw vector, never
   through `rawToChar()`, or every curly quote and en dash becomes mojibake.
   Also carries Word endnote markers through as `^rawid^` tokens.
 - `write_stable.R` holds byte-stable CSV/YAML/lines writers plus

@@ -101,7 +101,9 @@ inputs relative to the repository root and never takes a path outside it.
 Note that Word documents of this kind routinely carry tracked-change and
 reviewer metadata that is not part of the published page.
 `R/utils/read_docx.R` reproduces the accept-all-tracked-changes rendering and
-never opens `comments.xml`.
+never opens `comments.xml`. For this indicator that rendering is not quite the
+published page, and `R/gen_narrative.R` reads the document as of the snapshot
+date instead. See "Two rounds of revision" below.
 
 ### What each document contributes
 
@@ -109,10 +111,40 @@ never opens `comments.xml`.
 everything the published page shows: the title and subtitle, Background, About
 the Indicator, Key Points, the Figure 1 block (caption, map description, and
 `Data source:` line), Indicator Notes, Data Sources, and References. It arrives
-with tracked changes not yet accepted, 52 deletions and 45 insertions, so the
-published page equals the accept-all rendering this repository's reader produces.
-It also ships `word/comments.xml`, `word/people.xml`, and
-`word/commentsExtended.xml`, none of which the reader opens.
+with tracked changes not yet accepted, 52 deletions and 45 insertions. It also
+ships `word/comments.xml`, `word/people.xml`, and `word/commentsExtended.xml`,
+none of which the reader opens.
+
+#### Two rounds of revision
+
+The published page is **not** the accept-all rendering of this document. Its
+tracked changes fall into two rounds, separated cleanly by date:
+
+| Round | Dates | Authors | What it is |
+|---|---|---|---|
+| First | 2024-03-13 to 2024-05-23 | Charlie Goff, Erica Barth-Naftilan, AnnaClaire Marley, Chris Lamie, Lauren Gentile, Matthew Mitchell, Sargon de Jesus | the June 2024 data update, accepted before EPA published |
+| Second | 2025-02-13 | Sargon de Jesus | six deletions made after the January 19, 2025 snapshot, and absent from the page |
+
+The second round deletes the closing sentence of Background, on Non-Hispanic
+Black and Non-Hispanic American Indian/Alaska Native populations having the
+highest rates of asthma, together with its citation marker and reference 6
+(Burbank et al., 2023). The snapshot page still carries all three, which is how
+the divergence was found: the accept-all rendering produced a reference list
+numbered 1, 2, 3, 4, 5, 7, 8, 9 while the page shows 1 through 9.
+
+So `R/gen_narrative.R` reads the document **as of 2025-01-19**: revisions stamped
+on or before that date are accepted, later ones are rejected by renaming their
+`w:delText` back to `w:t`, unwrapping the `w:del`, and dropping any deleted
+paragraph mark. It does this by wrapping the shared reader's document loader,
+never by editing `R/utils/read_docx.R`, which is indicator-agnostic and must stay
+identical across every indicator repository. The generator asserts the resulting
+reference numbering is 1..N with no gaps, so an accidental return to the
+accept-all reading stops the build.
+
+The first round's deletions stay deleted, which is what the accept-all rule is
+for: text such as "Asthma capitals", "suffering from hay fever", "$56 billion",
+"Thirty-nine", and a placeholder reading `[ERG to format citation]` appears
+nowhere in `narrative.qmd`.
 
 `GDD TD_2024 updated May 2024- CLEAN.docx` is the **technical documentation**,
 the Word source of the PDF linked above. It carries the Identification, Revision
@@ -136,19 +168,19 @@ paragraph if that changes.
 against a hand-typed reference list**, not with Word endnotes. This needs saying
 plainly, because the file looks like the opposite at first glance: it still
 contains 13 `w:endnoteReference` markers and a 47 KB `word/endnotes.xml`. Every
-one of those markers sits inside a `w:del`, and every endnote body is
-`w:delText`. In the accept-all rendering there are **zero live endnote markers
-and zero live endnote characters**. The May 2024 update deleted the whole Word
-endnote apparatus and replaced it with typed superscripts plus a list of
-`Bibliography`-styled paragraphs at the end of the body. So
+one of those markers sits inside a `w:del` from the first round, and every
+endnote body is `w:delText`. In the rendering described above there are **zero
+live endnote markers and zero live endnote characters**. The 2024 update deleted
+the whole Word endnote apparatus and replaced it with typed superscripts plus a
+list of `Bibliography`-styled paragraphs at the end of the body. So
 `R/gen_narrative.R` builds the reference list from those paragraphs and never
 calls `docx_endnotes()`; calling it would return 13 empty rows.
 
-EPA's typed list runs 1, 2, 3, 4, 5, 7, 8, 9, with no 6. The deleted endnote that
-held position 6 was an Asthma and Allergy Foundation of America citation, and one
-other deleted note read `[ERG to format citation]`. The published numbering was
-never closed up after that edit. It is reproduced exactly as published and is not
-renumbered here.
+Read as of the snapshot date, EPA's typed list runs 1 through 9 with no gap,
+matching the published page. The superseded endnotes it replaced are a different
+set of citations entirely, including an Asthma and Allergy Foundation of America
+entry and one reading `[ERG to format citation]`, and none of them reaches the
+output.
 
 `GDD TD_2024 updated May 2024- CLEAN.docx` uses **author-date citations typed
 inline** (`Zhang et al., 2015`, `Lo et al., 2019`, `Kunkel et al., 2005`) against
