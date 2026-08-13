@@ -221,10 +221,19 @@ silently re-pinning it to whatever the data now says throws that away.
 ## What must never appear here
 
 Each indicator was once a standalone Quarto website. That scaffolding is gone.
-Do not add `_quarto.yml`, `css/`, `images/`, `404.qmd`, `index.qmd`, a
+Do not add `_quarto.yml`, `css/`, `404.qmd`, `index.qmd`, a
 "Data & Downloads" page, `R/figures.R`, `R/_common.R`, or
 `R/utils/pick_chart.R`. The figures live in the site repository. Do not
 reintroduce a rendered page here.
+
+`images/` is the one exception, and it is not the old site scaffolding. It holds
+EPA's published figure image, vendored unmodified and hashed in
+`data-raw/PROVENANCE.md` exactly as `data-raw/` is. The website repository holds
+no per-indicator images, so a page that shows EPA's own figure rather than
+redrawing it reads the file from here over `raw.githubusercontent.com`, the same
+way it reads `data/`. Nothing in this repository reads `images/`: no script
+opens it, and it is not an input to any build. Do not put a site asset, a logo,
+a stylesheet, or a chart this repository drew itself in there.
 
 ## Rights
 

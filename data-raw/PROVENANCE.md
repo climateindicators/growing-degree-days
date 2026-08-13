@@ -83,6 +83,34 @@ a data file for it ever surfaces, whatever presents it must say outright that it
 is technical documentation material and not part of the published indicator, the
 way `cold-related-deaths` Figure TD-1 does.
 
+## EPA's published figure image
+
+The website draws EPA's own figure rather than redrawing it, so the image is
+vendored here too, in `images/` rather than `data-raw/`: it is not an input to
+any build, and no script reads it. It is recorded on the same terms as every
+other vendored file.
+
+| File | sha256 | Raw URL |
+|---|---|---|
+| `images/fig-1.png` | `20070c2cec67040078474d0759c33760667e0407ed72e9d3735cfcec086c3849` | <https://raw.githubusercontent.com/climateindicators/growing-degree-days/main/images/fig-1.png> |
+
+| File | EPA URL |
+|---|---|
+| `images/fig-1.png` | <https://19january2025snapshot.epa.gov/system/files/images/2024-06/growing-degree_download1_2024.png> |
+
+That is the target of the "Download Image" link on EPA's indicator page, which
+is the full-resolution original (250,998 bytes), not the 928-pixel-wide copy the
+page displays. It is unmodified: not cropped, resized, recompressed, or
+recoloured. EPA bakes the figure title, the legend, and the data source line
+into the image, so the caption the site prints above it from `data/meta.yml`
+repeats what the image already shows. That is EPA's own presentation and is left
+alone.
+
+The image's legend draws all seven percent-change classes, including `<-20`,
+which no station falls into in this vintage. Anything reproducing that legend
+should keep the empty class, which is why `data/meta.yml` lists all seven under
+`series`.
+
 ## Source documents for the prose
 
 The indicator prose is extracted from these Word files, reproduced here
