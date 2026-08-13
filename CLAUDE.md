@@ -186,6 +186,38 @@ in the body.
 documented invariants, value snapshots, file hygiene (UTF-8/LF/no BOM), and
 agreement between `data/meta.yml` and the CSVs it documents.
 
+#### The Key Points block ties the data to the prose
+
+`tests/test-data.R` has a block headed "EPA's published Key Points, reproduced
+from the data". It is not an ordinary value snapshot. Each of its pins is a
+number EPA states in words in `narrative.qmd`, recomputed from
+`data/growing_degree_days_change_by_station.csv`:
+
+| Pin in `tests/test-data.R` | Sentence it holds to account |
+| --- | --- |
+| `sum(v > 0) == 221` | "increased at 221 of the 280 long-term stations measured (79 percent)" |
+| `sum(v >= 20) == 50` | "Fifty stations, mostly in the West, have experienced an increase of 20 percent or more" |
+| `round(mean(v), 2) == 10.72` | "an increase of about 10 percent" |
+| `sum(f1$change_class_key == "gt_pos_20") == 50` | the same fifty stations, reached through EPA's own legend class |
+
+So a failure there is not automatically a bug in the build. It means the data
+and EPA's prose have stopped agreeing, and exactly one of three things is true:
+
+1. **The data was updated and the prose was not.** EPA reissues the CSV, the
+   counts move, and `narrative.qmd` still quotes the old ones. The page would
+   then assert numbers its own figure contradicts. Regenerate the narrative from
+   the matching docx before touching these pins.
+2. **Both moved together, legitimately.** Update the pins to the new counts and,
+   in the same commit, confirm each one against the sentence in `narrative.qmd`
+   that it mirrors. Update this table too if EPA's wording changed.
+3. **The build broke.** A classification or parsing change moved a count while
+   the source file stayed put. Check `data-raw/PROVENANCE.md`'s sha256 first: if
+   the source is unchanged, the bug is in `R/build_data.R`.
+
+Never "fix" one of these by editing the expected number alone. The pin exists
+precisely so that the data and the sentence cannot drift apart unnoticed, and
+silently re-pinning it to whatever the data now says throws that away.
+
 ## What must never appear here
 
 Each indicator was once a standalone Quarto website. That scaffolding is gone.

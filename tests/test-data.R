@@ -70,6 +70,10 @@ check("latitude is byte-identical to the source file", identical(src[[1]], f1$la
 check("longitude is byte-identical to the source file", identical(src[[2]], f1$longitude))
 check("value is byte-identical to the source file", identical(src[[3]], f1$value))
 
+# Each pin below is a number EPA states in words in narrative.qmd, recomputed
+# from the data. A failure here means the data and EPA's prose have stopped
+# agreeing, which is not the same as a build bug. See "The Key Points block ties
+# the data to the prose" in CLAUDE.md before changing any expected number.
 cat("\nEPA's published Key Points, reproduced from the data\n")
 check("221 of 280 stations increased (EPA: 'increased at 221 of the 280')",
       sum(v > 0) == 221L)
