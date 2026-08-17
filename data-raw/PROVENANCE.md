@@ -121,6 +121,8 @@ unmodified:
 | `GDD_2024 updated May 2024.docx` | `92959da8bf3f91cb251457521dee74b67619b45b5e621040cdd7275aec3ef08c` | <https://raw.githubusercontent.com/climateindicators/growing-degree-days/main/data-raw/GDD_2024%20updated%20May%202024.docx> |
 | `GDD TD_2024 updated May 2024- CLEAN.docx` | `cd3041b43cf16ce1b303dc465e2175cbedd76c95fabe05c538d34c3494e35fb5` | <https://raw.githubusercontent.com/climateindicators/growing-degree-days/main/data-raw/GDD%20TD_2024%20updated%20May%202024-%20CLEAN.docx> |
 
+Both were obtained from EPA via a Freedom of Information Act (FOIA) request.
+
 They are vendored so the extraction is reproducible from this repository alone:
 `R/gen_narrative.R` reads them out of `data-raw/` and writes `narrative.qmd`,
 which is a generated artifact, not a hand-edited one. The generator resolves its
